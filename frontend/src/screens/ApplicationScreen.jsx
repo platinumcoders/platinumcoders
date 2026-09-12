@@ -1,7 +1,7 @@
 // frontend/src/screens/ApplicationScreen.jsx
 // Screen 1: Application Form per Thinker 2 spec §1.1 & §5.1.
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import FinancialFields from '../components/FinancialFields';
 import { submitApplication } from '../api';
 
@@ -9,6 +9,7 @@ const DEMO_PROFILES = {
   priya: {
     applicantName: 'Priya Sharma',
     demographicGroup: 'female',
+    band: 'REVIEW ~58',
     financials: {
       incomeSixMonths: ['45000', '45000', '45000', '45000', '45000', '45000'],
       monthsAtIncomeSource: '12',
@@ -24,6 +25,7 @@ const DEMO_PROFILES = {
   aarav: {
     applicantName: 'Aarav Patel',
     demographicGroup: 'male',
+    band: 'APPROVE ~96',
     financials: {
       incomeSixMonths: ['85000', '85000', '85000', '85000', '85000', '85000'],
       monthsAtIncomeSource: '40',
@@ -39,6 +41,7 @@ const DEMO_PROFILES = {
   meera: {
     applicantName: 'Meera Iyer',
     demographicGroup: 'female',
+    band: 'APPROVE ~85',
     financials: {
       incomeSixMonths: ['60000', '60000', '60000', '60000', '60000', '60000'],
       monthsAtIncomeSource: '24',
@@ -54,6 +57,7 @@ const DEMO_PROFILES = {
   rahul: {
     applicantName: 'Rahul Verma',
     demographicGroup: 'male',
+    band: 'DECLINE ~23',
     financials: {
       incomeSixMonths: ['30000', '28000', '32000', '25000', '30000', '27000'],
       monthsAtIncomeSource: '8',
@@ -74,19 +78,43 @@ export default function ApplicationScreen({ onEvaluated }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [activePreset, setActivePreset] = useState('priya');
+  const [isLoadedPulse, setIsLoadedPulse] = useState(false);
+  const [loadedBadge, setLoadedBadge] = useState(null);
+  const formRef = useRef(null);
 
   const handleFinancialsChange = (nextFinancials) => {
     setForm(prev => ({ ...prev, financials: nextFinancials }));
   };
 
   const handleLoadProfile = (key) => {
-    if (DEMO_PROFILES[key]) {
-      setForm(JSON.parse(JSON.stringify(DEMO_PROFILES[key])));
+    const profile = DEMO_PROFILES[key];
+    if (profile) {
+      setForm(JSON.parse(JSON.stringify(profile)));
       setError(null);
+      setActivePreset(key);
+      setLoadedBadge({
+        name: profile.applicantName,
+        band: profile.band
+      });
+      setIsLoadedPulse(true);
+      setTimeout(() => setIsLoadedPulse(false), 1300);
+
+      // Smooth animated scroll down to the populated values
+      setTimeout(() => {
+        if (formRef.current) {
+          const yOffset = -84; // clearance for sticky topbar
+          const currentScroll = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+          const targetY = formRef.current.getBoundingClientRect().top + currentScroll + yOffset;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
+      }, 35);
     }
   };
 
   const handleClearForm = () => {
+    setActivePreset(null);
+    setLoadedBadge(null);
     setForm({
       applicantName: '',
       demographicGroup: 'female',
@@ -182,7 +210,7 @@ export default function ApplicationScreen({ onEvaluated }) {
         <div className="section-actions">
           <button
             type="button"
-            className="btn btn-secondary"
+            className={`btn btn-secondary ${activePreset === 'priya' ? 'active-preset' : ''}`}
             onClick={() => handleLoadProfile('priya')}
             disabled={submitting}
             title="Score ~58 (REVIEW)"
@@ -191,7 +219,7 @@ export default function ApplicationScreen({ onEvaluated }) {
           </button>
           <button
             type="button"
-            className="btn btn-secondary"
+            className={`btn btn-secondary ${activePreset === 'aarav' ? 'active-preset' : ''}`}
             onClick={() => handleLoadProfile('aarav')}
             disabled={submitting}
             title="Score ~96 (APPROVE)"
@@ -200,7 +228,7 @@ export default function ApplicationScreen({ onEvaluated }) {
           </button>
           <button
             type="button"
-            className="btn btn-secondary"
+            className={`btn btn-secondary ${activePreset === 'meera' ? 'active-preset' : ''}`}
             onClick={() => handleLoadProfile('meera')}
             disabled={submitting}
             title="Score ~85 (APPROVE - No Rent)"
@@ -209,7 +237,7 @@ export default function ApplicationScreen({ onEvaluated }) {
           </button>
           <button
             type="button"
-            className="btn btn-secondary"
+            className={`btn btn-secondary ${activePreset === 'rahul' ? 'active-preset' : ''}`}
             onClick={() => handleLoadProfile('rahul')}
             disabled={submitting}
             title="Score ~23 (DECLINE)"
@@ -237,13 +265,25 @@ export default function ApplicationScreen({ onEvaluated }) {
         </div>
       </div>
 
-      <form noValidate className="card form-card" onSubmit={handleSubmit}>
+      <form
+        ref={formRef}
+        noValidate
+        className={`card form-card ${isLoadedPulse ? 'profile-loaded' : ''}`}
+        onSubmit={handleSubmit}
+      >
         <div className="form-card-top">
           <div>
             <span className="card-kicker">APPLICATION PROFILE</span>
             <h3>Financial snapshot</h3>
           </div>
-          <span className="secure-chip">🛡 Encrypted intake</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {loadedBadge && (
+              <span className="preset-loaded-badge">
+                ✨ Loaded {loadedBadge.name} ({loadedBadge.band})
+              </span>
+            )}
+            <span className="secure-chip">🛡 Encrypted intake</span>
+          </div>
         </div>
 
         {/* Section 01: Applicant identity */}

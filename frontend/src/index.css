@@ -1,4 +1,7 @@
 /* ThinCred High-End Fintech Design System */
+html {
+  scroll-behavior: smooth;
+}
 :root {
   color: #171717;
   background: #fafafa;
@@ -388,7 +391,84 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .form-card {
   overflow: hidden;
+  scroll-margin-top: 90px;
+  transition: box-shadow 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
 }
+
+.btn-secondary.active-preset {
+  background: #0070f3;
+  color: #fff;
+  border-color: #0070f3;
+  box-shadow: 0 2px 8px rgba(0, 112, 243, 0.25);
+}
+
+.preset-loaded-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(0, 112, 243, 0.09);
+  color: #0070f3;
+  border: 1px solid rgba(0, 112, 243, 0.25);
+  animation: badgeSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes badgeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes profileCardGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 112, 243, 0.45);
+    border-color: #0070f3;
+    transform: translateY(0);
+  }
+  30% {
+    box-shadow: 0 0 0 8px rgba(0, 112, 243, 0.16), 0 12px 32px rgba(0, 112, 243, 0.12);
+    border-color: #0070f3;
+    transform: translateY(-2px);
+  }
+  100% {
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+    border-color: #ebebeb;
+    transform: translateY(0);
+  }
+}
+
+.form-card.profile-loaded {
+  animation: profileCardGlow 1.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes valueInputFlash {
+  0% {
+    background-color: rgba(0, 112, 243, 0.15);
+    border-color: #0070f3;
+  }
+  40% {
+    background-color: rgba(0, 112, 243, 0.06);
+    border-color: #0070f3;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.form-card.profile-loaded input:not([type="checkbox"]),
+.form-card.profile-loaded select {
+  animation: valueInputFlash 1.2s ease-out;
+}
+
 .form-card-top, .card-heading-row, .summary-top {
   display: flex;
   justify-content: space-between;
@@ -1139,6 +1219,54 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .app-shell.dark .btn-ghost {
   color: #999;
   border-color: #2a2a2a;
+}
+.app-shell.dark .btn-secondary.active-preset {
+  background: #0070f3;
+  color: #fff;
+  border-color: #0070f3;
+  box-shadow: 0 2px 12px rgba(0, 112, 243, 0.45);
+}
+.app-shell.dark .preset-loaded-badge {
+  background: rgba(0, 112, 243, 0.2);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+.app-shell.dark .form-card.profile-loaded {
+  animation: profileCardGlowDark 1.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes profileCardGlowDark {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 112, 243, 0.6);
+    border-color: #0070f3;
+    transform: translateY(0);
+  }
+  30% {
+    box-shadow: 0 0 0 8px rgba(0, 112, 243, 0.25), 0 12px 32px rgba(0, 112, 243, 0.25);
+    border-color: #0070f3;
+    transform: translateY(-2px);
+  }
+  100% {
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    border-color: #1f1f1f;
+    transform: translateY(0);
+  }
+}
+.app-shell.dark .form-card.profile-loaded input:not([type="checkbox"]),
+.app-shell.dark .form-card.profile-loaded select {
+  animation: valueInputFlashDark 1.2s ease-out;
+}
+@keyframes valueInputFlashDark {
+  0% {
+    background-color: rgba(0, 112, 243, 0.25);
+    border-color: #0070f3;
+  }
+  40% {
+    background-color: rgba(0, 112, 243, 0.1);
+    border-color: #0070f3;
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 .app-shell.dark .card {
   background: #111;
