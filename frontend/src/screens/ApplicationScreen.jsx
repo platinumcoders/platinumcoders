@@ -22,18 +22,18 @@ const GOLDEN_PROFILE = {
 };
 
 const INITIAL_FORM = {
-  applicantName: '',
-  demographicGroup: '',
+  applicantName: 'Priya Sharma',
+  demographicGroup: 'female',
   financials: {
-    incomeSixMonths: ['', '', '', '', '', ''],
-    monthsAtIncomeSource: '',
-    monthlyRent: '',
-    rentOnTimeCount: '',
-    monthlyUtilities: '',
-    utilityOnTimeCount: '',
-    monthlyOtherExpenses: '',
-    savingsBalance: '',
-    monthlyDebtPayments: ''
+    incomeSixMonths: ['45000', '45000', '45000', '45000', '45000', '45000'],
+    monthsAtIncomeSource: '12',
+    monthlyRent: '10000',
+    rentOnTimeCount: '9',
+    monthlyUtilities: '2500',
+    utilityOnTimeCount: '10',
+    monthlyOtherExpenses: '17500',
+    savingsBalance: '40000',
+    monthlyDebtPayments: '7000'
   }
 };
 
@@ -47,7 +47,26 @@ export default function ApplicationScreen({ onEvaluated }) {
   };
 
   const handleLoadDemo = () => {
-    setForm(GOLDEN_PROFILE);
+    setForm(JSON.parse(JSON.stringify(GOLDEN_PROFILE)));
+    setError(null);
+  };
+
+  const handleClearForm = () => {
+    setForm({
+      applicantName: '',
+      demographicGroup: 'female',
+      financials: {
+        incomeSixMonths: ['', '', '', '', '', ''],
+        monthsAtIncomeSource: '',
+        monthlyRent: '',
+        rentOnTimeCount: '',
+        monthlyUtilities: '',
+        utilityOnTimeCount: '',
+        monthlyOtherExpenses: '',
+        savingsBalance: '',
+        monthlyDebtPayments: ''
+      }
+    });
     setError(null);
   };
 
@@ -118,98 +137,120 @@ export default function ApplicationScreen({ onEvaluated }) {
   };
 
   return (
-    <div className="screen-container">
-      <div className="card-box form-card">
-        <div className="screen-header">
-          <h2 className="screen-title">ThinCred — Application</h2>
-          <p className="screen-subtitle">Enter financial information to compute an interpretable credit decision.</p>
+    <section className="screen-section">
+      <div className="section-header">
+        <div>
+          <span className="eyebrow">01 / INTAKE</span>
+          <h2>Tell us about the applicant</h2>
+          <p>A guided intake for cash-flow and payment history. Nothing is hidden behind a black box.</p>
+        </div>
+        <div className="section-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleLoadDemo}
+            disabled={submitting}
+          >
+            ✨ Load Priya's preset
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={handleClearForm}
+            disabled={submitting}
+          >
+            ✕ Clear form
+          </button>
+        </div>
+      </div>
+
+      <div className="explain-banner">
+        <div className="explain-icon">✨</div>
+        <div>
+          <strong>What is this?</strong>
+          <p>
+            ThinCred uses stable income, payment habits, and savings signals to create a reproducible credit score. Demographic data is monitored for fairness, never used to decide.
+          </p>
+        </div>
+      </div>
+
+      <form className="card form-card" onSubmit={handleSubmit}>
+        <div className="form-card-top">
+          <div>
+            <span className="card-kicker">APPLICATION PROFILE</span>
+            <h3>Financial snapshot</h3>
+          </div>
+          <span className="secure-chip">🛡 Encrypted intake</span>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-section">
-            <h3 className="section-title">Applicant</h3>
-            <div className="fields-grid-2">
-              <div className="field-block">
-                <label className="field-label" htmlFor="applicantName">Applicant name (optional)</label>
-                <input
-                  id="applicantName"
-                  type="text"
-                  maxLength={100}
-                  placeholder="e.g. Priya Sharma"
-                  value={form.applicantName}
-                  disabled={submitting}
-                  onChange={(e) => setForm({ ...form, applicantName: e.target.value })}
-                />
-              </div>
-
-              <div className="field-block">
-                <label className="field-label">Monitored demographic field</label>
-                <div className="radio-group">
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      name="demographicGroup"
-                      value="female"
-                      checked={form.demographicGroup === 'female'}
-                      disabled={submitting}
-                      onChange={(e) => setForm({ ...form, demographicGroup: e.target.value })}
-                    />
-                    <span>female</span>
-                  </label>
-                  <label className="radio-label">
-                    <input
-                      type="radio"
-                      name="demographicGroup"
-                      value="male"
-                      checked={form.demographicGroup === 'male'}
-                      disabled={submitting}
-                      onChange={(e) => setForm({ ...form, demographicGroup: e.target.value })}
-                    />
-                    <span>male</span>
-                  </label>
-                </div>
-                {/* Mandatory label text exact string per Blueprint §4 F1 */}
-                <p className="mandatory-demographic-caption">
-                  collected for fairness monitoring only — never used in the credit decision.
-                </p>
-              </div>
+        {/* Section 01: Applicant identity */}
+        <div className="form-section">
+          <div className="form-section-heading">
+            <span className="section-number">01</span>
+            <div>
+              <h3>Applicant identity</h3>
+              <p>Used to create the decision passport.</p>
             </div>
           </div>
 
-          <div className="form-section">
-            <h3 className="section-title">Financial Information</h3>
-            <FinancialFields
-              values={form.financials}
-              onChange={handleFinancialsChange}
-              disabled={submitting}
-            />
-          </div>
-
-          {error && (
-            <div className="alert-box alert-error" role="alert">
-              {error}
+          <div className="input-grid-2">
+            <div className="form-field">
+              <label htmlFor="applicantName">Full name</label>
+              <input
+                id="applicantName"
+                type="text"
+                maxLength={100}
+                placeholder="e.g. Priya Sharma"
+                value={form.applicantName}
+                disabled={submitting}
+                onChange={(e) => setForm({ ...form, applicantName: e.target.value })}
+              />
             </div>
-          )}
 
-          <div className="form-actions-split">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleLoadDemo}
-              disabled={submitting}
-            >
-              Load demo profile
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={submitting}
-            >
-              {submitting ? 'Evaluating…' : 'Evaluate Credit'}
-            </button>
+            <div className="form-field">
+              <label htmlFor="demographicGroup">Demographic group</label>
+              <select
+                id="demographicGroup"
+                value={form.demographicGroup}
+                disabled={submitting}
+                onChange={(e) => setForm({ ...form, demographicGroup: e.target.value })}
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+              {/* Mandatory label text exact string per Blueprint §4 F1 */}
+              <span className="field-disclosure">
+                collected for fairness monitoring only — never used in the credit decision.
+              </span>
+            </div>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        {/* Sections 02 & 03: Financial Fields */}
+        <FinancialFields
+          values={form.financials}
+          onChange={handleFinancialsChange}
+          disabled={submitting}
+        />
+
+        {error && (
+          <div className="alert-box alert-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div className="form-actions">
+          <span>✅ Ready to evaluate</span>
+          <button
+            type="submit"
+            className="btn btn-primary btn-large"
+            disabled={submitting}
+          >
+            {submitting ? 'Evaluating…' : 'Evaluate credit →'}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
+
