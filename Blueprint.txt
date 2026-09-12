@@ -1,0 +1,255 @@
+﻿================================================================================
+THINCRED — MASTER BLUEPRINT v1.1  [FROZEN]
+Reproducible Credit Decisioning for Thin-File Borrowers
+================================================================================
+CHANGELOG
+ v1.1 — Product renamed FairPath -> ThinCred. decisionId prefix
+         FP- -> TC-. No functional changes.
+ v1.0 — Initial freeze.
+
+DOCUMENT RULES
+--------------
+1. This file is the single source of truth for the entire project.
+2. Every Thinker chat and every Worker chat receives this file in full.
+3. Anything marked [FROZEN] may not be changed without approval from the
+   Planner chat. If something must change, it changes HERE first, and the
+   version number is bumped.
+4. Thinker 1 will produce a detailed API contract. After the Planner reviews
+   it, it is appended as APPENDIX A and becomes [FROZEN] too.
+5. Hierarchy: Planner -> Thinkers (design) -> Workers (code)
+   -> Operator (you, in VS Code: copy, paste, run, test).
+
+--------------------------------------------------------------------------------
+SECTION 1 — IDENTITY
+--------------------------------------------------------------------------------
+Product name : ThinCred
+Tagline      : Reproducible Credit Decisioning for Thin-File Borrowers
+Vision       : A consent-driven credit decision engine that evaluates
+               alternative financial signals, explains every decision, and
+               preserves a reproducible Decision Passport for future audit.
+
+--------------------------------------------------------------------------------
+SECTION 2 — CORE DEMO CHAIN [FROZEN]
+--------------------------------------------------------------------------------
+ 1. Borrower enters financial information (+ 1 monitored demographic field)
+ 2. ThinCred calculates an interpretable risk score (0-100)
+ 3. Decision: APPROVE / REVIEW / DECLINE
+ 4. Screen shows WHY (reason codes from the actual scoring factors)
+ 5. Decision Passport is created and stored
+ 6. Auditor retrieves the old decision by Decision ID
+ 7. Replay recomputes from stored snapshot + stored version
+    -> REPLAY VERIFIED (original = replay)
+ 8. Fairness monitoring: group comparison + counterfactual test
+
+--------------------------------------------------------------------------------
+SECTION 3 — LOCKED PRODUCT SPECS [FROZEN]
+--------------------------------------------------------------------------------
+Score        : integer, 0-100
+Decisions    : APPROVE = 70-100 | REVIEW = 50-69 | DECLINE = 0-49
+Scoring      : deterministic, rule/weight-based, fully interpretable.
+               NO machine learning, NO LLM anywhere in the decision path.
+Input factors (weights and exact formulas are Thinker 1's job):
+               - income level & stability
+               - income volatility
+               - cash-flow surplus (income - expenses - obligations)
+               - rent payment consistency
+               - utility / bill payment consistency
+               - savings / liquidity
+               - existing obligation burden
+Explanations : generated ONLY from scoring factors, as structured reason
+               codes: { code, label, polarity (positive|risk), points }.
+               No free-text or AI-generated narratives.
+Frontend     : exactly 4 screens — Application, Decision, Auditor/Replay,
+               Fairness. No extra screens without Planner approval.
+
+--------------------------------------------------------------------------------
+SECTION 4 — FAIRNESS RULES [FROZEN]
+--------------------------------------------------------------------------------
+F1. Exactly ONE monitored demographic field is collected (e.g., gender).
+    Labelled on the UI: "collected for fairness monitoring only — never
+    used in the credit decision."
+F2. The scoring function accepts financial inputs ONLY. The demographic
+    field is stored in the passport for monitoring but never passed into
+    scoring.
+F3. Monitoring A — group summary: application/approval counts per group,
+    computed from stored decisions.
+F4. Monitoring B — counterfactual test: one financial profile, flip ONLY
+    the demographic field, re-evaluate. Expected: identical score+decision.
+F5. Wording rule: "fairness is MONITORED". Never "fairness is proven."
+
+--------------------------------------------------------------------------------
+SECTION 5 — REPLAY & VERSIONING RULES [FROZEN]
+--------------------------------------------------------------------------------
+R1. Every Decision Passport stores:
+    - decisionId  : short, human-readable, unique (format TC-000001)
+    - full financial input snapshot (exactly as received)
+    - monitored demographic value
+    - computed features (intermediate numbers)
+    - score, decision, reason codes
+    - policyVersion, algorithmVersion
+    - timestamp (ISO 8601, UTC)
+R2. Policy configuration (weights, thresholds, bands) is stored as DATA in
+    a policyVersions collection. Decisions reference the version used.
+    Replay loads THAT stored version — never the current one.
+R3. Replay verdict:
+    - score AND decision match -> "REPLAY VERIFIED"
+    - anything differs         -> "REPLAY MISMATCH" (show both sides)
+R4. Optional polish only (Phase 6, never earlier): SHA-256 integrity hash.
+
+--------------------------------------------------------------------------------
+SECTION 6 — API SURFACE [FROZEN skeleton — Thinker 1 fills in full detail]
+--------------------------------------------------------------------------------
+Base URL : http://localhost:5000/api
+Style    : JSON, camelCase, errors as { "error": "message" } + proper
+           HTTP status codes.
+
+ E1. POST /api/applications
+     Submit inputs -> evaluate -> save passport -> return decision + full
+     passport incl. decisionId. ("Evaluate Credit" = ONE call. Create and
+     evaluate are NOT separate endpoints.)
+ E2. GET /api/decisions/:decisionId
+     Returns the full stored passport for the Auditor screen.
+ E3. POST /api/decisions/:decisionId/replay
+     Recomputes from stored snapshot + stored policy version. Returns
+     original vs replay comparison + verdict.
+ E4. GET /api/fairness/summary
+     Group-level statistics computed from stored decisions.
+ E5. POST /api/fairness/counterfactual
+     Runs the counterfactual test on a submitted financial profile.
+ E6. Seed script: `npm run seed` inserts ~40 demo applications (~20 per
+     demographic group, mixed outcomes) so Fairness + Auditor screens are
+     demo-ready instantly.
+
+Thinker 1 defines exact request/response bodies for E1-E5 (Appendix A).
+No new endpoints without Planner approval.
+
+--------------------------------------------------------------------------------
+SECTION 7 — DATA MODEL REQUIREMENTS (conceptual — Thinker 3 implements)
+--------------------------------------------------------------------------------
+Collections:
+ - decisions      : one document per passport, all fields from Section 5 R1
+ - policyVersions : version id, weights/thresholds snapshot, createdAt,
+                    short description
+Fairness numbers are computed on the fly from `decisions`.
+No additional collections unless Thinker 3 justifies a concrete need and
+the Planner approves.
+
+--------------------------------------------------------------------------------
+SECTION 8 — TECH STACK [FROZEN]
+--------------------------------------------------------------------------------
+Frontend : React + Vite (dev server port 5173)
+Backend  : Node.js + Express (port 5000), plain JavaScript, no TypeScript
+Database : MongoDB Atlas, connection string in backend/.env as MONGODB_URI
+           (.env is never committed)
+Testing  : Thunder Client for all backend endpoints
+CORS     : backend must allow requests from http://localhost:5173
+Deploy   : Vercel (frontend) + Render (backend) — ONLY AFTER local demo
+           works end to end. Never debug deployment before the MVP works.
+No auth, no Docker, no microservices, no mobile, no blockchain.
+
+--------------------------------------------------------------------------------
+SECTION 9 — PROJECT STRUCTURE [FROZEN]
+--------------------------------------------------------------------------------
+ThinCred/
+  frontend/        (React + Vite)
+  backend/         (Express: routes, engine, config, seed, db connection)
+  Blueprint.txt    (this file)
+  README.md        (setup steps + demo script)
+
+--------------------------------------------------------------------------------
+SECTION 10 — OUT OF SCOPE [FROZEN]
+--------------------------------------------------------------------------------
+Real bank integration | KYC/Aadhaar | loan disbursement | deep-learning or
+LLM decisioning | blockchain | mobile app | complex auth | microservices |
+Docker/Kubernetes | fancy animations | large analytics dashboards.
+
+--------------------------------------------------------------------------------
+SECTION 11 — EXECUTION PHASES
+--------------------------------------------------------------------------------
+Phase 0 : Master Blueprint (this file)                          [DONE]
+Phase 1 : Thinker 1 — engine design + full API contract (Appendix A)
+Phase 2 : Backend + Database build (against Appendix A)
+Phase 3 : Frontend build (against Appendix A)
+Phase 4 : Integration — .env, CORS, ports, seed data
+Phase 5 : Testing — Thunder Client (E1-E5), then full browser demo
+Phase 6 : Polish — styling, hash, README — only after Phase 5 passes
+Phase 7 : Demo freeze + rehearse the 12-step chain
+
+Rule: a phase never starts before the previous phase's output is frozen
+in this file. Note: once Appendix A is frozen, Phases 2 and 3 MAY run in
+parallel — both build against the same contract.
+
+--------------------------------------------------------------------------------
+SECTION 12 — THINKER BOUNDARIES
+--------------------------------------------------------------------------------
+THINKER 1 (System Architect + Backend)
+  OWNS  : scoring engine, reason codes, explanation rules, replay logic,
+          fairness check logic, full API contract (Appendix A).
+  MAY NOT: design React screens, define DB internals beyond the contract,
+          add endpoints.
+
+THINKER 2 (Frontend)
+  OWNS  : the 4 React screens, forms, states, API calls.
+  MAY NOT: invent endpoints/fields outside Appendix A; add screens.
+
+THINKER 3 (Database)
+  OWNS  : MongoDB schema, indexes, connection, persistence per Appendix A.
+  MAY NOT: invent fields or collections not required by the contract.
+
+THINKER 4 (Integration + Testing)
+  OWNS  : wiring React <-> Express <-> MongoDB, .env, CORS, seed run,
+          Thunder Client test suite, end-to-end verification.
+  MAY NOT: change [FROZEN] specs — reports conflicts to the Planner.
+
+--------------------------------------------------------------------------------
+SECTION 13 — DEFINITION OF DONE [FROZEN]
+--------------------------------------------------------------------------------
+The MVP is finished ONLY when this chain works in the browser:
+ 1. Borrower enters data
+ 2. Backend receives data
+ 3. Engine calculates score
+ 4. APPROVE / REVIEW / DECLINE produced
+ 5. Reason-code explanation generated
+ 6. Decision Passport saved
+ 7. decisionId generated and shown
+ 8. Auditor retrieves it by ID
+ 9. Replay recomputes from stored snapshot + stored version
+10. Original = Replay ("REPLAY VERIFIED")
+11. Fairness summary + counterfactual test run and displayed
+12. All of the above clearly visible in React
+If any of the 12 fails, the MVP is not done — no matter what else works.
+
+================================================================================
+APPENDIX A — ENGINE DESIGN & DETAILED API CONTRACT  [FROZEN v1.2]
+================================================================================
+Content: the complete Thinker 1 design document, preserved verbatim in the
+repository file Design-Thinker1.md. It is PART of this Blueprint and is
+given to every Thinker and Worker. Its PLANNER FLAGS are resolved in
+Appendix B; all resolutions approve/confirm the design as written — the
+design text stands unchanged.
+================================================================================
+
+APPENDIX B — PLANNER RESOLUTIONS, THINKER 1 FLAGS  [FROZEN v1.2]
+================================================================================
+B1  Eight factors APPROVED. Blueprint §3 bullet "income level & stability"
+    is implemented as two factors (INCOME-LEVEL 12, INCOME-STABILITY 10).
+    All 7 Blueprint bullets remain covered.
+B2  applicantName APPROVED: optional request/passport field, display-only,
+    never scored, never passed to the engine. Seed uses neutral names.
+B3  Monitored demographic vocabulary FROZEN for MVP: "female" | "male"
+    only. Counterfactual (E5) flips between exactly two values; group
+    summary supports N groups if vocabulary is extended post-MVP.
+B4  counters collection APPROVED. Three collections total: decisions,
+    policyVersions, counters.
+B5  Currency context: INR. API amounts remain unitless numbers; frontend
+    displays ₹ labels; README states INR. PV-001 magnitudes correct as-is.
+B6  Mirrored seed parity CONFIRMED. Demo narrative: parity is expected by
+    design and confirmed by monitoring; counterfactual demonstrates
+    invariance live.
+B7  algorithmVersion semantics CONFIRMED: policyVersion = stored policy
+    DATA id (replay loads stored); algorithmVersion = engine CODE version
+    stamped at evaluation time (replay uses current code; algorithmChanged
+    exposes drift).
+B8  Minor items APPROVED: points displayed at 1 decimal (displayed sum may
+    differ from score), score = Math.round half-up, E1 returns 201.
+================================================================================

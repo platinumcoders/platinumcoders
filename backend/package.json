@@ -1,0 +1,17 @@
+﻿{
+  "name": "thincred-backend",
+  "version": "1.0.0",
+  "description": "ThinCred Backend - Reproducible Credit Decisioning for Thin-File Borrowers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed/seed.js",
+    "test:engine": "node test-engine.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongodb": "^6.13.0"
+  }
+}
