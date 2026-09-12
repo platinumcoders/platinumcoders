@@ -1,4 +1,4 @@
-﻿// backend/server.js
+// backend/server.js
 // ThinCred Express Server per Master Blueprint §6 & §8, Appendix A §7.0.
 
 const express = require('express');
@@ -13,9 +13,9 @@ const fairnessRouter = require('./routes/fairness');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS allowing http://localhost:5173
+// CORS allowing localhost and hosted domains (e.g. Netlify)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: true,
   credentials: true
 }));
 
