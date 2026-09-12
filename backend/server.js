@@ -13,11 +13,22 @@ const fairnessRouter = require('./routes/fairness');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS allowing localhost and hosted domains (e.g. Netlify)
+// 2. CORS configuration per deployment guidelines
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*') || origin.endsWith('.netlify.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
+
 
 // Body parser with exact 400 error message for malformed JSON
 app.use(express.json());
