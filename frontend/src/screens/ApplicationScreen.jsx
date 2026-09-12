@@ -5,37 +5,70 @@ import React, { useState } from 'react';
 import FinancialFields from '../components/FinancialFields';
 import { submitApplication } from '../api';
 
-const GOLDEN_PROFILE = {
-  applicantName: 'Priya Sharma',
-  demographicGroup: 'female',
-  financials: {
-    incomeSixMonths: ['45000', '45000', '45000', '45000', '45000', '45000'],
-    monthsAtIncomeSource: '12',
-    monthlyRent: '10000',
-    rentOnTimeCount: '9',
-    monthlyUtilities: '2500',
-    utilityOnTimeCount: '10',
-    monthlyOtherExpenses: '17500',
-    savingsBalance: '40000',
-    monthlyDebtPayments: '7000'
+const DEMO_PROFILES = {
+  priya: {
+    applicantName: 'Priya Sharma',
+    demographicGroup: 'female',
+    financials: {
+      incomeSixMonths: ['45000', '45000', '45000', '45000', '45000', '45000'],
+      monthsAtIncomeSource: '12',
+      monthlyRent: '10000',
+      rentOnTimeCount: '9',
+      monthlyUtilities: '2500',
+      utilityOnTimeCount: '10',
+      monthlyOtherExpenses: '17500',
+      savingsBalance: '40000',
+      monthlyDebtPayments: '7000'
+    }
+  },
+  aarav: {
+    applicantName: 'Aarav Patel',
+    demographicGroup: 'male',
+    financials: {
+      incomeSixMonths: ['85000', '85000', '85000', '85000', '85000', '85000'],
+      monthsAtIncomeSource: '40',
+      monthlyRent: '16000',
+      rentOnTimeCount: '12',
+      monthlyUtilities: '3500',
+      utilityOnTimeCount: '12',
+      monthlyOtherExpenses: '20000',
+      savingsBalance: '220000',
+      monthlyDebtPayments: '4000'
+    }
+  },
+  meera: {
+    applicantName: 'Meera Iyer',
+    demographicGroup: 'female',
+    financials: {
+      incomeSixMonths: ['60000', '60000', '60000', '60000', '60000', '60000'],
+      monthsAtIncomeSource: '24',
+      monthlyRent: '0',
+      rentOnTimeCount: '0',
+      monthlyUtilities: '3000',
+      utilityOnTimeCount: '12',
+      monthlyOtherExpenses: '18000',
+      savingsBalance: '110000',
+      monthlyDebtPayments: '5000'
+    }
+  },
+  rahul: {
+    applicantName: 'Rahul Verma',
+    demographicGroup: 'male',
+    financials: {
+      incomeSixMonths: ['30000', '28000', '32000', '25000', '30000', '27000'],
+      monthsAtIncomeSource: '8',
+      monthlyRent: '12000',
+      rentOnTimeCount: '6',
+      monthlyUtilities: '2500',
+      utilityOnTimeCount: '7',
+      monthlyOtherExpenses: '12000',
+      savingsBalance: '5000',
+      monthlyDebtPayments: '11000'
+    }
   }
 };
 
-const INITIAL_FORM = {
-  applicantName: 'Priya Sharma',
-  demographicGroup: 'female',
-  financials: {
-    incomeSixMonths: ['45000', '45000', '45000', '45000', '45000', '45000'],
-    monthsAtIncomeSource: '12',
-    monthlyRent: '10000',
-    rentOnTimeCount: '9',
-    monthlyUtilities: '2500',
-    utilityOnTimeCount: '10',
-    monthlyOtherExpenses: '17500',
-    savingsBalance: '40000',
-    monthlyDebtPayments: '7000'
-  }
-};
+const INITIAL_FORM = JSON.parse(JSON.stringify(DEMO_PROFILES.priya));
 
 export default function ApplicationScreen({ onEvaluated }) {
   const [form, setForm] = useState(INITIAL_FORM);
@@ -46,9 +79,11 @@ export default function ApplicationScreen({ onEvaluated }) {
     setForm(prev => ({ ...prev, financials: nextFinancials }));
   };
 
-  const handleLoadDemo = () => {
-    setForm(JSON.parse(JSON.stringify(GOLDEN_PROFILE)));
-    setError(null);
+  const handleLoadProfile = (key) => {
+    if (DEMO_PROFILES[key]) {
+      setForm(JSON.parse(JSON.stringify(DEMO_PROFILES[key])));
+      setError(null);
+    }
   };
 
   const handleClearForm = () => {
@@ -148,10 +183,38 @@ export default function ApplicationScreen({ onEvaluated }) {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={handleLoadDemo}
+            onClick={() => handleLoadProfile('priya')}
             disabled={submitting}
+            title="Score ~58 (REVIEW)"
           >
-            ✨ Load Priya's preset
+            👤 Priya (Review)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleLoadProfile('aarav')}
+            disabled={submitting}
+            title="Score ~96 (APPROVE)"
+          >
+            ⭐ Aarav (Approve)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleLoadProfile('meera')}
+            disabled={submitting}
+            title="Score ~85 (APPROVE - No Rent)"
+          >
+            🏡 Meera (Approve - No Rent)
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleLoadProfile('rahul')}
+            disabled={submitting}
+            title="Score ~23 (DECLINE)"
+          >
+            ⚠️ Rahul (Decline)
           </button>
           <button
             type="button"
@@ -159,7 +222,7 @@ export default function ApplicationScreen({ onEvaluated }) {
             onClick={handleClearForm}
             disabled={submitting}
           >
-            ✕ Clear form
+            ✕ Clear
           </button>
         </div>
       </div>
@@ -174,7 +237,7 @@ export default function ApplicationScreen({ onEvaluated }) {
         </div>
       </div>
 
-      <form className="card form-card" onSubmit={handleSubmit}>
+      <form noValidate className="card form-card" onSubmit={handleSubmit}>
         <div className="form-card-top">
           <div>
             <span className="card-kicker">APPLICATION PROFILE</span>
